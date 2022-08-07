@@ -89,7 +89,6 @@ namespace Basis/System/FilePath {
     use Basis/System.FilePath;
     use Basis/System.FilePath.{FilePath};
 
-    /// Note - current set of operations should be pure?
 
     /// Unwrap
     pub def getHH(p: FilePath): ##java.nio.file.Path = 
@@ -467,6 +466,9 @@ namespace Basis/System/FilePath {
 
     pub def isRegexMatch(patt: String, path: FilePath): Result[Bool, String] =
         pathMatcherMatches(path, "regex:" + patt) as & Pure
+
+    pub def toFile(r: Region[r], path: FilePath): Interop/IO.File[r] \ Write(r) =
+        toPath(path) |> Interop/NIO/File/Path.toFile(r)
 
 
 }
