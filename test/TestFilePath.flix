@@ -23,7 +23,7 @@ namespace TestFilePath {
 
     @test
     def toString01(): Bool =
-        let p1 = Interop/System/FilePath.filePath("src.flix");
+        let p1 = Basis/System/FilePath.filePath("src.flix");
         ToString.toString(p1) == "src.flix"
 
     /////////////////////////////////////////////////////////////////////////////
@@ -32,14 +32,14 @@ namespace TestFilePath {
 
     /// @test
     /// def filePathConcat01(): Bool =
-    ///     let p1 = Interop/System/FilePath.filePathConcat("src.flix" :: Nil);
+    ///     let p1 = Basis/System/FilePath.filePathConcat("src.flix" :: Nil);
     ///     ToString.toString(p1) == "src.flix"
 
     /// @test
     /// def filePathConcat02(): Bool & Impure =
-    ///     let p1 = Interop/System/FilePath.filePathConcat("home" :: "coding" :: "src.flix" :: Nil);
+    ///     let p1 = Basis/System/FilePath.filePathConcat("home" :: "coding" :: "src.flix" :: Nil);
     ///     println("filePathConcat02: ${p1}");
-    ///     Interop/System/FilePath.getFileName(p1) == Some(Interop/System/FilePath.filePath("src.flix"))
+    ///     Basis/System/FilePath.getFileName(p1) == Some(Basis/System/FilePath.filePath("src.flix"))
 
     /////////////////////////////////////////////////////////////////////////////
     // normalize                                                               //
@@ -47,14 +47,14 @@ namespace TestFilePath {
 
     @test
     def normalize01(): Bool =
-        let p1 = Interop/System/FilePath.filePath("c:/root/../root2") |> Interop/System/FilePath.normalize;
-        let p2 = Interop/System/FilePath.filePath("c:/root2");
+        let p1 = Basis/System/FilePath.filePath("c:/root/../root2") |> Basis/System/FilePath.normalize;
+        let p2 = Basis/System/FilePath.filePath("c:/root2");
         p1 == p2
 
     @test
     def normalize02(): Bool =
-        let p1 = Interop/System/FilePath.filePath("c:/root/child1/..") |> Interop/System/FilePath.normalize;
-        let p2 = Interop/System/FilePath.filePath("c:/root/");
+        let p1 = Basis/System/FilePath.filePath("c:/root/child1/..") |> Basis/System/FilePath.normalize;
+        let p2 = Basis/System/FilePath.filePath("c:/root/");
         p1 == p2
 
     /////////////////////////////////////////////////////////////////////////////
@@ -63,8 +63,8 @@ namespace TestFilePath {
 
     @test
     def toAbsolutePath01(): Bool =
-        let p1 = Interop/System/FilePath.filePath("c:/root/child1.txt") |> Interop/System/FilePath.toAbsolutePath;
-        let p2 = Interop/System/FilePath.filePath("c:/root/child1.txt");
+        let p1 = Basis/System/FilePath.filePath("c:/root/child1.txt") |> Basis/System/FilePath.toAbsolutePath;
+        let p2 = Basis/System/FilePath.filePath("c:/root/child1.txt");
         p1 == Ok(p2)
 
     /////////////////////////////////////////////////////////////////////////////
@@ -73,26 +73,26 @@ namespace TestFilePath {
 
     @test
     def getExtension01(): Bool =
-        use Interop/System/FilePath.{getExtension};
-        let p1 = Interop/System/FilePath.filePath("c:/root/child1.txt");
+        use Basis/System/FilePath.{getExtension};
+        let p1 = Basis/System/FilePath.filePath("c:/root/child1.txt");
         getExtension(p1) == Some("txt")
 
     @test
     def getExtension02(): Bool =
-        use Interop/System/FilePath.{getExtension};
-        let p1 = Interop/System/FilePath.filePath("file.txt");
+        use Basis/System/FilePath.{getExtension};
+        let p1 = Basis/System/FilePath.filePath("file.txt");
         getExtension(p1) == Some("txt")
 
     @test
     def getExtension03(): Bool =
-        use Interop/System/FilePath.{getExtension};
-        let p1 = Interop/System/FilePath.filePath("c:/root");
+        use Basis/System/FilePath.{getExtension};
+        let p1 = Basis/System/FilePath.filePath("c:/root");
         getExtension(p1) == None
 
     @test
     def getExtension04(): Bool =
-        use Interop/System/FilePath.{getExtension};
-        let p1 = Interop/System/FilePath.filePath("c:/root/file.001.txt");
+        use Basis/System/FilePath.{getExtension};
+        let p1 = Basis/System/FilePath.filePath("c:/root/file.001.txt");
         getExtension(p1) == Some("txt")
 
     /////////////////////////////////////////////////////////////////////////////
@@ -101,8 +101,8 @@ namespace TestFilePath {
 
     @test
     def putExtension01(): Bool =
-        use Interop/System/FilePath.{putExtension, getFileName};
-        let p1 = Interop/System/FilePath.filePath("c:/root/file1.txt");
+        use Basis/System/FilePath.{putExtension, getFileName};
+        let p1 = Basis/System/FilePath.filePath("c:/root/file1.txt");
         let p2 = putExtension(p1, "md");
         getFileName(p2) |> Option.map(ToString.toString) == Some("file1.md")
 
@@ -112,8 +112,8 @@ namespace TestFilePath {
 
     @test
     def dropExtension01(): Bool =
-        use Interop/System/FilePath.{dropExtension, getFileName};
-        let p1 = Interop/System/FilePath.filePath("c:/root/file1.txt");
+        use Basis/System/FilePath.{dropExtension, getFileName};
+        let p1 = Basis/System/FilePath.filePath("c:/root/file1.txt");
         let p2 = dropExtension(p1);
         getFileName(p2) |> Option.map(ToString.toString) == Some("file1")
 
@@ -123,8 +123,8 @@ namespace TestFilePath {
 
     @test
     def addExtension01(): Bool =
-        use Interop/System/FilePath.{addExtension, getFileName};
-        let p1 = Interop/System/FilePath.filePath("archive.tar");
+        use Basis/System/FilePath.{addExtension, getFileName};
+        let p1 = Basis/System/FilePath.filePath("archive.tar");
         let p2 = addExtension(p1, "gz");
         getFileName(p2) |> Option.map(ToString.toString) == Some("archive.tar.gz")
 
@@ -134,15 +134,15 @@ namespace TestFilePath {
 
     @test
     def dropExtensions01(): Bool =
-        use Interop/System/FilePath.{dropExtensions, getFileName};
-        let p1 = Interop/System/FilePath.filePath("c:/root/file1.txt");
+        use Basis/System/FilePath.{dropExtensions, getFileName};
+        let p1 = Basis/System/FilePath.filePath("c:/root/file1.txt");
         let p2 = dropExtensions(p1);
         getFileName(p2) |> Option.map(ToString.toString) == Some("file1")
 
     @test
     def dropExtensions02(): Bool =
-        use Interop/System/FilePath.{dropExtensions, getFileName};
-        let p1 = Interop/System/FilePath.filePath("c:/root/archive.tar.gz");
+        use Basis/System/FilePath.{dropExtensions, getFileName};
+        let p1 = Basis/System/FilePath.filePath("c:/root/archive.tar.gz");
         let p2 = dropExtensions(p1);
         getFileName(p2) |> Option.map(ToString.toString) == Some("archive")
 
@@ -152,22 +152,22 @@ namespace TestFilePath {
 
     @test
     def stripExtension01(): Bool =
-        use Interop/System/FilePath.{stripExtension, getFileName};
-        let p1 = Interop/System/FilePath.filePath("c:/root/file1.txt");
+        use Basis/System/FilePath.{stripExtension, getFileName};
+        let p1 = Basis/System/FilePath.filePath("c:/root/file1.txt");
         let ans = stripExtension(p1, "txt");
         ans |> Option.flatMap(getFileName) |> Option.map(ToString.toString) == Some("file1")
 
     @test
     def stripExtension02(): Bool =
-        use Interop/System/FilePath.{stripExtension, getFileName};
-        let p1 = Interop/System/FilePath.filePath("c:/root/archive.tar.gz");
+        use Basis/System/FilePath.{stripExtension, getFileName};
+        let p1 = Basis/System/FilePath.filePath("c:/root/archive.tar.gz");
         let ans = stripExtension(p1, "gz");
         ans |> Option.flatMap(getFileName) |> Option.map(ToString.toString) == Some("archive.tar")
 
     @test
     def stripExtension03(): Bool =
-        use Interop/System/FilePath.{stripExtension, getFileName};
-        let p1 = Interop/System/FilePath.filePath("c:/root/file1");
+        use Basis/System/FilePath.{stripExtension, getFileName};
+        let p1 = Basis/System/FilePath.filePath("c:/root/file1");
         let ans = stripExtension(p1, "txt");
         ans == None
 
@@ -177,22 +177,22 @@ namespace TestFilePath {
 
     @test
     def stripExtensions01(): Bool =
-        use Interop/System/FilePath.{stripExtensions, getFileName};
-        let p1 = Interop/System/FilePath.filePath("c:/root/file1.txt");
+        use Basis/System/FilePath.{stripExtensions, getFileName};
+        let p1 = Basis/System/FilePath.filePath("c:/root/file1.txt");
         let ans = stripExtensions(p1, "txt");
         ans |> Option.flatMap(getFileName) |> Option.map(ToString.toString) == Some("file1")
 
     @test
     def stripExtensions02(): Bool =
-        use Interop/System/FilePath.{stripExtensions, getFileName};
-        let p1 = Interop/System/FilePath.filePath("c:/root/archive.tar.gz");
+        use Basis/System/FilePath.{stripExtensions, getFileName};
+        let p1 = Basis/System/FilePath.filePath("c:/root/archive.tar.gz");
         let ans = stripExtensions(p1, "tar.gz");
         ans |> Option.flatMap(getFileName) |> Option.map(ToString.toString) == Some("archive")
 
     @test
     def stripExtensions03(): Bool =
-        use Interop/System/FilePath.{stripExtensions, getFileName};
-        let p1 = Interop/System/FilePath.filePath("c:/root/file1");
+        use Basis/System/FilePath.{stripExtensions, getFileName};
+        let p1 = Basis/System/FilePath.filePath("c:/root/file1");
         let ans = stripExtensions(p1, "txt");
         ans == None
 
@@ -202,8 +202,8 @@ namespace TestFilePath {
 
     @test
     def putBaseName01(): Bool =
-        use Interop/System/FilePath.{putBaseName, getFileName};
-        let p1 = Interop/System/FilePath.filePath("c:/root/file1.txt");
+        use Basis/System/FilePath.{putBaseName, getFileName};
+        let p1 = Basis/System/FilePath.filePath("c:/root/file1.txt");
         let p2 = putBaseName(p1, "file2");
         p2 |> getFileName |> Option.map(ToString.toString) == Some("file2.txt")
 
@@ -213,16 +213,16 @@ namespace TestFilePath {
 
     @test
     def split01(): Bool =
-        use Interop/System/FilePath.{split};
-        let p1 = Interop/System/FilePath.filePath("c:/root/file1.txt");
+        use Basis/System/FilePath.{split};
+        let p1 = Basis/System/FilePath.filePath("c:/root/file1.txt");
         let xs = split(p1);
         List.length(xs) == 3
 
 
     @test
     def isGlobMatch01(): Bool = 
-        let p1 = Interop/System/FilePath.filePath("file1.txt");
-        Interop/System/FilePath.isGlobMatch("*.txt", p1) == Ok(true)
+        let p1 = Basis/System/FilePath.filePath("file1.txt");
+        Basis/System/FilePath.isGlobMatch("*.txt", p1) == Ok(true)
 
 
 }

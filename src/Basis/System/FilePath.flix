@@ -15,7 +15,7 @@
  */
 
 
-namespace Interop/System {
+namespace Basis/System {
 
     ///
     /// Represents a FilePath.
@@ -36,10 +36,9 @@ namespace Interop/System {
                 try { 
                     import static java.nio.file.Path.of(String, Array[String, r]): ##java.nio.file.Path & r as of1;
                     Some(FilePath(of1(s, [] @ r)))
-
-            } catch {
-                case _: ##java.lang.Exception => None
-            }
+                } catch {
+                    case _: ##java.lang.Exception => None
+                }
             }
     }
 
@@ -52,7 +51,7 @@ namespace Interop/System {
     }
 
     instance SemiGroup[FilePath] {
-        pub def combine(x: FilePath, y: FilePath): FilePath = Interop/System/FilePath.append(x, y)
+        pub def combine(x: FilePath, y: FilePath): FilePath = Basis/System/FilePath.append(x, y)
     }
 
     instance Order[FilePath] {
@@ -83,19 +82,32 @@ namespace Interop/System {
 
 }
 
-namespace Interop/System/FilePath {
+namespace Basis/System/FilePath {
 
     use ToString.toString;
 
-    use Interop/System.FilePath;
-    use Interop/System.FilePath.{FilePath};
+    use Basis/System.FilePath;
+    use Basis/System.FilePath.{FilePath};
 
     /// Note - current set of operations should be pure?
 
     /// Unwrap
-    pub def getPath(p: FilePath): ##java.nio.file.Path = 
+    pub def getHH(p: FilePath): ##java.nio.file.Path = 
         let FilePath(p1) = p;
         p1
+
+
+
+    def toPath(p: FilePath): Interop/NIO/File.Path = 
+        use Interop/NIO/File.Path.{Path};
+        let FilePath(p1) = p;
+        Path(p1)
+
+    def fromPath(p: Interop/NIO/File.Path): FilePath  = 
+        use Interop/NIO/File.Path.{Path};
+        let Path(p1) = p;
+        FilePath(p1)
+
 
     ///
     /// Returns a new FilePath.
@@ -147,56 +159,28 @@ namespace Interop/System/FilePath {
         }
 
     pub def normalize(path: FilePath): FilePath =
-        import java.nio.file.Path.normalize(): ##java.nio.file.Path & Pure;
-        let FilePath(p1) = path;
-        FilePath(normalize(p1))
+        toPath(path) |> Interop/NIO/File/Path.normalize |> fromPath
 
 
     /// If `path` is a relative path `toAbsolutePath` resolves the path in a system specific manner.
     /// Should this be Impure?
     pub def toAbsolutePath(path: FilePath): Result[FilePath, String] =
-        import java.nio.file.Path.toAbsolutePath(): ##java.nio.file.Path & Pure;
-        try {
-            let FilePath(p1) = path;
-            Ok(FilePath(toAbsolutePath(p1)))
-        } catch {
-            case _: ##java.lang.Exception => Err("toAbsolutePath")
-        }
+        toPath(path) |> Interop/NIO/File/Path.toAbsolutePath |> Result.map(fromPath)
 
 
     pub def isAbsolute(path: FilePath): Bool =
-        import java.nio.file.Path.isAbsolute(): Bool & Pure;
-        let FilePath(path1) = path;
-        isAbsolute(path1)
+        toPath(path) |> Interop/NIO/File/Path.isAbsolute
 
     pub def isRelative(path: FilePath): Bool = not isAbsolute(path)
 
     pub def getRoot(path: FilePath): Option[FilePath] =
-        import java.nio.file.Path.getRoot(): ##java.nio.file.Path & Pure;
-        let FilePath(path1) = path;
-        let root = getRoot(path1);
-        if (Object.isNull(root))
-            None
-        else
-            Some(FilePath(root))
+        toPath(path) |> Interop/NIO/File/Path.getRoot |> Option.map(fromPath)
 
     pub def getParent(path: FilePath): Option[FilePath] =
-        import java.nio.file.Path.getParent(): ##java.nio.file.Path & Pure;
-        let FilePath(path1) = path;
-        let parent = getParent(path1);
-        if (Object.isNull(parent))
-            None
-        else
-            Some(FilePath(parent))
+        toPath(path) |> Interop/NIO/File/Path.getParent |> Option.map(fromPath)
 
     pub def getFileName(path: FilePath): Option[FilePath] =
-        import java.nio.file.Path.getFileName(): ##java.nio.file.Path & Pure;
-        let FilePath(path1) = path;
-        let name = getFileName(path1);
-        if (Object.isNull(name))
-            None
-        else
-            Some(FilePath(name))
+        toPath(path) |> Interop/NIO/File/Path.getFileName |> Option.map(fromPath)
 
     pub def splitFileName(path: FilePath): (Option[FilePath], Option[FilePath]) =
         (getParent(path), getFileName(path))
