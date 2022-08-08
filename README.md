@@ -1,8 +1,12 @@
-# interop-filepath
+# basis-filepath
 
-Flix wrapper over the Java `java.nio.file.Path` library, split off from Flix-Sandbox.
+Flix file path library based on Java's `java.nio.file.Path`.
 
+License: Apache 2.0
 
-Dependencies: 
+## Dependencies: 
 
 https://github.com/stephentetley/interop-collections
+
+https://github.com/stephentetley/interop-base
+
