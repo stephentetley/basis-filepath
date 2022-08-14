@@ -20,16 +20,19 @@ namespace Basis/System {
     ///
     /// Represents a FilePath.
     ///
-    pub enum FilePath(##java.nio.file.Path)
+    pub enum FilePath(Interop/NIO/File.Path)
+
+    // Design note - can't be an alias as we want to define instances.
+
 
     /// Note formatting is system dependent.
     instance ToString[FilePath] {
         pub def toString(path: FilePath): String =
-            import java.nio.file.Path.toString(): String & Pure;
             let FilePath(path1) = path;
-            toString(path1)
+            Interop/NIO/File/Path.toString(path1)
     }
 
+/*
     instance FromString[FilePath] {
         pub def fromString(s: String): Option[FilePath] =
             region r {
@@ -41,43 +44,43 @@ namespace Basis/System {
                 }
             }
     }
+*/
 
     instance Eq[FilePath] {
         pub def eq(x: FilePath, y: FilePath): Bool =
-            import java.nio.file.Path.equals(##java.lang.Object): Bool & Pure;
             let FilePath(x1) = x;
             let FilePath(y1) = y;
-            equals(x1, y1 as ##java.lang.Object)
+            Interop/NIO/File/Path.equals(x1, y1)
     }
 
+/*
     instance SemiGroup[FilePath] {
         pub def combine(x: FilePath, y: FilePath): FilePath = Basis/System/FilePath.append(x, y)
     }
+*/
 
     instance Order[FilePath] {
         pub def compare(x: FilePath, y: FilePath): Comparison =
-            import java.nio.file.Path.compareTo(##java.nio.file.Path): Int32 & Pure;
             let FilePath(x1) = x;
             let FilePath(y1) = y;
-            compareTo(x1, y1) |> Comparison.fromInt32
+            Interop/NIO/File/Path.compareTo(x1, y1) |> Comparison.fromInt32
     }
 
     instance Hash[FilePath] {
-        pub def hash(x: FilePath): Int32 =
-            import java.nio.file.Path.hashCode(): Int32 & Pure;
-            let FilePath(x1) = x;
-            hashCode(x1)
+        pub def hash(path: FilePath): Int32 =
+            let FilePath(path1) = path;
+            Interop/NIO/File/Path.hashCode(path1)
     }
 
     instance Boxable[FilePath]
 
-    instance Interop/Collections.Marshal[FilePath] {
-        pub def toJavaObject(x: FilePath): ##java.lang.Object = 
-            let FilePath(x1) = x;
-            x1 as ##java.lang.Object
+    instance Interop/Flix.Marshal[FilePath] {
+        pub def toJavaObject(path: FilePath): ##java.lang.Object = 
+            let FilePath(path1) = path;
+            Interop/Flix/Marshal.toJavaObject(path1)
         
         pub def fromJavaObject(o: ##java.lang.Object): FilePath = 
-            FilePath(o as ##java.nio.file.Path)
+            FilePath(Interop/Flix/Marshal.fromJavaObject(o))
     }
 
 }
@@ -89,38 +92,34 @@ namespace Basis/System/FilePath {
     use Basis/System.FilePath;
     use Basis/System.FilePath.{FilePath};
 
-
+/*
     /// Unwrap
     pub def getHH(p: FilePath): ##java.nio.file.Path = 
+        let FilePath(p1) = p;
+        p1
+*/
+
+
+    def getPath(p: FilePath): Interop/NIO/File.Path = 
         let FilePath(p1) = p;
         p1
 
 
 
-    def toPath(p: FilePath): Interop/NIO/File.Path = 
-        use Interop/NIO/File.Path.{Path};
-        let FilePath(p1) = p;
-        Path(p1)
-
-    def fromPath(p: Interop/NIO/File.Path): FilePath  = 
-        use Interop/NIO/File.Path.{Path};
-        let Path(p1) = p;
-        FilePath(p1)
-
-
     ///
     /// Returns a new FilePath.
     ///
-    pub def filePath(s: String): FilePath =
+    pub def filePath(s: String): Result[FilePath, String] =
         region r {
-            import static java.nio.file.Path.of(String, Array[String, r]): ##java.nio.file.Path & r as of1;
-            try {
-                FilePath(of1(s, [] @ r))
-            } catch {
-                case _: ##java.lang.Exception => empty()
-            }
+            Interop/NIO/File/Path.of(s, [] @ r) |> Result.map(FilePath)
         }
 
+    def filePath1(s: String): FilePath = match filePath(s) {
+        case Ok(p1)  => p1
+        case Err(_)  => empty()
+    }
+
+/*
     /// pub def filePathConcat(l: List[String]): FilePath =
     ///     region r {
     ///         import static java.nio.file.Path.of(String, Array[String, r]): ##java.nio.file.Path & r as of1;
@@ -145,47 +144,44 @@ namespace Basis/System/FilePath {
                 case _: ##java.lang.Exception => Err("Invalid FilePath")
             }
         }
+*/
 
     pub def empty(): FilePath =        
-        region r {
-            import static java.nio.file.Path.of(String, Array[String, r]): ##java.nio.file.Path & r as of1;
-            try {
-                
-                FilePath(of1("", [] @ r))
-            } catch {
-                case _: ##java.lang.Exception => bug!("FilePath.empty")
-            }
+        match filePath("") {
+            case Ok(p1) => p1
+            case Err(msg) => bug!(msg)
         }
 
+
     pub def normalize(path: FilePath): FilePath =
-        toPath(path) |> Interop/NIO/File/Path.normalize |> fromPath
+        getPath(path) |> Interop/NIO/File/Path.normalize |> FilePath
 
 
     /// If `path` is a relative path `toAbsolutePath` resolves the path in a system specific manner.
     /// Should this be Impure?
     pub def toAbsolutePath(path: FilePath): Result[FilePath, String] =
-        toPath(path) |> Interop/NIO/File/Path.toAbsolutePath |> Result.map(fromPath)
+        getPath(path) |> Interop/NIO/File/Path.toAbsolutePath |> Result.map(FilePath)
 
 
     pub def isAbsolute(path: FilePath): Bool =
-        toPath(path) |> Interop/NIO/File/Path.isAbsolute
+        getPath(path) |> Interop/NIO/File/Path.isAbsolute
 
     pub def isRelative(path: FilePath): Bool = not isAbsolute(path)
 
     pub def getRoot(path: FilePath): Option[FilePath] =
-        toPath(path) |> Interop/NIO/File/Path.getRoot |> Option.map(fromPath)
+        getPath(path) |> Interop/NIO/File/Path.getRoot |> Option.map(FilePath)
 
     pub def getParent(path: FilePath): Option[FilePath] =
-        toPath(path) |> Interop/NIO/File/Path.getParent |> Option.map(fromPath)
+        getPath(path) |> Interop/NIO/File/Path.getParent |> Option.map(FilePath)
 
     pub def getFileName(path: FilePath): Option[FilePath] =
-        toPath(path) |> Interop/NIO/File/Path.getFileName |> Option.map(fromPath)
+        getPath(path) |> Interop/NIO/File/Path.getFileName |> Option.map(FilePath)
 
     pub def splitFileName(path: FilePath): (Option[FilePath], Option[FilePath]) =
         (getParent(path), getFileName(path))
 
     pub def replaceFileName(path: FilePath, name: String): FilePath =
-        let file = filePath(name);
+        let file = filePath1(name);
         match getParent(path) {
             case Some(dir) => append(dir, file)
             case None => file
@@ -200,9 +196,9 @@ namespace Basis/System/FilePath {
 
     pub def putBaseName(path: FilePath, name: String): FilePath =
         match (getParent(path), getExtensions(path)) {
-            case (Some(root), Some(exts)) => append(root, filePath(name + "." + exts))
-            case (None, Some(exts)) => filePath(name + "." + exts)
-            case (_, _) => path
+            case (Some(root), Some(exts)) => append(root, filePath1(name + "." + exts))
+            case (None, Some(exts))       => filePath1(name + "." + exts)
+            case (_, _)                   => path
         }
 
     pub def mapBaseName(f: String -> String, path: FilePath): FilePath =
@@ -218,11 +214,11 @@ namespace Basis/System/FilePath {
         }
 
 
-    def resolve(path: FilePath, other: FilePath): FilePath =
-        import java.nio.file.Path.resolve(##java.nio.file.Path): ##java.nio.file.Path & Pure;
+    pub def resolve(path: FilePath, other: FilePath): FilePath =
         let FilePath(path1) = path;
         let FilePath(other1) = other;
-        FilePath(resolve(path1, other1))
+        Interop/NIO/File/Path.resolve(path1, other1) |> FilePath
+
 
     pub def append(path: FilePath, other: FilePath): FilePath =
         normalize(resolve(path, other))
@@ -235,13 +231,13 @@ namespace Basis/System/FilePath {
     pub def <<>>(path: FilePath, name1: String): FilePath = snoc(path, name1)
 
     pub def snoc(path: FilePath, name1: String): FilePath =
-        match tryNew(name1) {
+        match filePath(name1) {
             case Ok(path1) => append(path, path1)
             case Err(_) => path
         }
 
     pub def push(name1: String, path: FilePath): FilePath =
-        match tryNew(name1) {
+        match filePath(name1) {
             case Ok(path1) => append(path, path1)
             case Err(_) => path
         }
@@ -251,19 +247,17 @@ namespace Basis/System/FilePath {
     /// Returns `path1` with the path name contracted relative to `path2`.
     ///
     pub def makeRelative(path1: FilePath, path2: FilePath): FilePath =
-        import java.nio.file.Path.relativize(##java.nio.file.Path): ##java.nio.file.Path & Pure;
         let FilePath(p1) = path1;
         let FilePath(p2) = path2;
-        FilePath(relativize(p1, p2))
+        Interop/NIO/File/Path.relativize(p1, p2) |> FilePath
 
     ///
     /// Returns `true` if the filepath `path1` starts with the string `path2`.
     ///
-    pub def startsWith(path1: FilePath, path2: FilePath): Bool =
-        import java.nio.file.Path.startsWith(##java.nio.file.Path): Bool & Pure;
-        let FilePath(p1) = path1;
+    pub def startsWith(prefix: {prefix :: FilePath}, path2: FilePath): Bool =
+        let FilePath(prefix1) = prefix.prefix;
         let FilePath(p2) = path2;
-        startsWith(p1, p2)
+        Interop/NIO/File/Path.startsWith(prefix = prefix1, p2)
 
 
     pub def getNameCount(path: FilePath): Int32 =
@@ -274,9 +268,7 @@ namespace Basis/System/FilePath {
 
     /// Does not count root, if present.
     def getNameCountHelper(path: FilePath): Int32 =
-        import java.nio.file.Path.getNameCount(): Int32 & Pure;
-        let FilePath(path1) = path;
-        getNameCount(path1)
+        getPath(path) |> Interop/NIO/File/Path.getNameCount
 
     pub def getNameAt(path: FilePath, ix: Int32): Option[FilePath] =
         if (ix < 0)
@@ -293,14 +285,7 @@ namespace Basis/System/FilePath {
     /// look at root, if present.
     ///
     def getNameAtHelper(path: FilePath, ix: Int32): Option[FilePath] =
-        import java.nio.file.Path.getName(Int32): ##java.nio.file.Path & Pure;
-        try {
-            let FilePath(path1) = path;
-            let name1 = getName(path1, ix);
-            Some(FilePath(name1))
-        } catch {
-            case _: ##java.lang.Exception => None
-        }
+        getPath(path) |> Interop/NIO/File/Path.getNameAt(ix) |> Result.toOption |> Option.map(FilePath)
 
     pub def hasExtension(path: FilePath): Bool =
         match getFileName(path) |> Option.map(toString) {
@@ -325,7 +310,7 @@ namespace Basis/System/FilePath {
             case Some(ext0) => {
                 let str = toString(path);
                 let lhs = String.dropRight(String.length(ext0), str);
-                filePath(lhs + ext)
+                filePath1(lhs + ext)
             }
             case None => path
         }
@@ -338,7 +323,7 @@ namespace Basis/System/FilePath {
         case Some(ext) => {
             let str = toString(path);
             let lhs = String.dropRight(String.length(ext) + 1, str);
-            filePath(lhs)
+            filePath1(lhs)
         }
         case None => path
     }
@@ -373,7 +358,7 @@ namespace Basis/System/FilePath {
             path
         else {
             let str = toString(path);
-            filePath(str + "." + ext)
+            filePath1(str + "." + ext)
         }
 
     ///
@@ -394,7 +379,7 @@ namespace Basis/System/FilePath {
         case Some(ext) => {
             let str = toString(path);
             let lhs = String.dropRight(String.length(ext) + 1, str);
-            filePath(lhs)
+            filePath1(lhs)
         }
         case None => path
     }
@@ -404,7 +389,7 @@ namespace Basis/System/FilePath {
             case Some(ext0) => {
                 let str = toString(path);
                 let lhs = String.dropRight(String.length(ext0), str);
-                filePath(lhs + ext)
+                filePath1(lhs + ext)
             }
             case None => path
         }
@@ -447,7 +432,7 @@ namespace Basis/System/FilePath {
                 case Some(x) => splitHelper(path, count, i+1, xs -> k(x :: xs))
                 case None => k(Nil)
             }
-
+/*
     def pathMatcherMatches(path: FilePath, syntaxAndPatt: String): Result[Bool, String] & Impure =
         import static java.nio.file.FileSystems.getDefault(): ##java.nio.file.FileSystem & Impure;
         import java.nio.file.FileSystem.getPathMatcher(String): ##java.nio.file.PathMatcher & Impure;
@@ -468,7 +453,7 @@ namespace Basis/System/FilePath {
         pathMatcherMatches(path, "regex:" + patt) as & Pure
 
     pub def toFile(r: Region[r], path: FilePath): Interop/IO.File[r] \ Write(r) =
-        toPath(path) |> Interop/NIO/File/Path.toFile(r)
+        getPath(path) |> Interop/NIO/File/Path.toFile(r)
 
-
+*/
 }

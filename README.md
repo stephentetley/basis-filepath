@@ -6,7 +6,5 @@ License: Apache 2.0
 
 ## Dependencies: 
 
-https://github.com/stephentetley/interop-collections
-
 https://github.com/stephentetley/interop-base
 
