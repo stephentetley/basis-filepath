@@ -1,10 +1,8 @@
 # basis-filepath
 
-Flix file path library based on Java's `java.nio.file.Path`.
+Defunct
 
-License: Apache 2.0
+Code moved to: 
 
-## Dependencies: 
-
-https://github.com/stephentetley/interop-base
+https://github.com/stephentetley/basis-base
 
