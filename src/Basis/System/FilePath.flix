@@ -452,8 +452,11 @@ namespace Basis/System/FilePath {
     pub def isRegexMatch(patt: String, path: FilePath): Result[Bool, String] =
         pathMatcherMatches(path, "regex:" + patt) as & Pure
 
-    pub def toFile(r: Region[r], path: FilePath): Interop/IO.File[r] \ Write(r) =
+*/
+    pub def toFile(r: Region[r], path: FilePath): Result[Interop/IO.File[r], String] \ Write(r) =
         getPath(path) |> Interop/NIO/File/Path.toFile(r)
 
-*/
+    pub def fromFile(file: Interop/IO.File[r]): Result[FilePath, String] \ Read(r) =
+        Interop/IO/File.toPath(file) |> Result.map(FilePath)
+
 }
